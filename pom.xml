@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>tw.com.rex</groupId>
-    <artifactId>old-security-test</artifactId>
+    <artifactId>old-oauth2-test</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>old-security-test</name>
-    <description>old-security-test</description>
+    <name>old-oauth2-test</name>
+    <description>old-oauth2-test</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
