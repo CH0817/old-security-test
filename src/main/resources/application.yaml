@@ -1,5 +1,10 @@
 server:
   port: 8880
+security:
+  oauth2:
+    resource:
+      # 一定要設置這個，驗證的時候才會先走 OAuth2
+      filter-order: 3
 logging:
   level:
     org:
