@@ -11,6 +11,10 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
+import org.springframework.security.oauth2.provider.TokenGranter;
+import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 
 @Configuration
 @EnableAuthorizationServer
@@ -41,7 +45,7 @@ public class Oauth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
                 .scopes("all")
                 // token 有效時間
                 .accessTokenValiditySeconds(6000)
-                //刷新 token 有效時間
+                // 刷新 token 有效時間
                 .refreshTokenValiditySeconds(6000)
                 // client 回調網址
                 .redirectUris("https://www.google.com");
@@ -53,7 +57,8 @@ public class Oauth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
                 // 不加這段密碼模式無法使用
                 .authenticationManager(authenticationManager)
                 // 不加這段無法刷新 token
-                .userDetailsService(userDetailsService);
+                .userDetailsService(userDetailsService)
+                .tokenGranter(tokenGranter(endpoints));
     }
 
     @Override
@@ -61,6 +66,13 @@ public class Oauth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
         // 不加這段 resource server 無法存取該資源權限 (403) (/oauth/check_token)
         security.checkTokenAccess("isAuthenticated()")
                 .passwordEncoder(passwordEncoder);
+    }
+
+    private TokenGranter tokenGranter(AuthorizationServerEndpointsConfigurer endpoints) {
+        ClientDetailsService clientDetailsService = endpoints.getClientDetailsService();
+        AuthorizationServerTokenServices tokenServices = endpoints.getTokenServices();
+        OAuth2RequestFactory requestFactory = endpoints.getOAuth2RequestFactory();
+        return new CustomTokenGranter(clientDetailsService, tokenServices, requestFactory);
     }
 
 }
