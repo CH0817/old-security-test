@@ -1,4 +1,4 @@
-package tw.com.rex.oldsecuritytest.config;
+package tw.com.rex.oldsecuritytest.authorization.config;
 
 import lombok.AllArgsConstructor;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;

@@ -1,4 +1,4 @@
-package tw.com.rex.oldsecuritytest.config;
+package tw.com.rex.oldsecuritytest.authorization.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +18,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 
 @Configuration
 @EnableAuthorizationServer
-public class Oauth2AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
+public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
     @Autowired
     private PasswordEncoder passwordEncoder;

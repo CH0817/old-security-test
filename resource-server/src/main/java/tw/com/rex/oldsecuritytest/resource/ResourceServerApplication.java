@@ -1,13 +1,13 @@
-package tw.com.rex.oldsecuritytest;
+package tw.com.rex.oldsecuritytest.resource;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class OldSecurityTestApplication {
+public class ResourceServerApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(OldSecurityTestApplication.class, args);
+        SpringApplication.run(ResourceServerApplication.class, args);
     }
 
 }

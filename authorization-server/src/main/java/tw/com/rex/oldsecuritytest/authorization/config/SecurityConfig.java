@@ -1,4 +1,4 @@
-package tw.com.rex.oldsecuritytest.config;
+package tw.com.rex.oldsecuritytest.authorization.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
