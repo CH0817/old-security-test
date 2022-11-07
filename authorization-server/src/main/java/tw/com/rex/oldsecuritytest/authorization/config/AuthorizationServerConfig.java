@@ -12,9 +12,21 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.CompositeTokenGranter;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenGranter;
+import org.springframework.security.oauth2.provider.client.ClientCredentialsTokenGranter;
+import org.springframework.security.oauth2.provider.code.AuthorizationCodeTokenGranter;
+import org.springframework.security.oauth2.provider.code.InMemoryAuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.implicit.ImplicitTokenGranter;
+import org.springframework.security.oauth2.provider.password.ResourceOwnerPasswordTokenGranter;
+import org.springframework.security.oauth2.provider.refresh.RefreshTokenGranter;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import tw.com.rex.oldsecuritytest.authorization.security.CustomTokenGranter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableAuthorizationServer
@@ -38,7 +50,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 // 授權後可用的 resource id
                 .resourceIds("oauth-resource")
                 // 可用的授權模式
-                .authorizedGrantTypes("authorization_code", "password", "refresh_token")
+                .authorizedGrantTypes("authorization_code", "password", "client_credentials", "refresh_token", "custom")
                 // 可授權的角色
                 .authorities("ROLE_ADMIN", "ROLE_USER")
                 // 授權範圍
@@ -68,11 +80,27 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .passwordEncoder(passwordEncoder);
     }
 
-    private TokenGranter tokenGranter(AuthorizationServerEndpointsConfigurer endpoints) {
-        ClientDetailsService clientDetailsService = endpoints.getClientDetailsService();
+    private TokenGranter tokenGranter(final AuthorizationServerEndpointsConfigurer endpoints) {
+        List<TokenGranter> granters = new ArrayList<>(Collections.singletonList(endpoints.getTokenGranter()));
+
         AuthorizationServerTokenServices tokenServices = endpoints.getTokenServices();
+        ClientDetailsService clientDetailsService = endpoints.getClientDetailsService();
         OAuth2RequestFactory requestFactory = endpoints.getOAuth2RequestFactory();
-        return new CustomTokenGranter(clientDetailsService, tokenServices, requestFactory);
+
+        // 授權碼模式
+        granters.add(new AuthorizationCodeTokenGranter(tokenServices, new InMemoryAuthorizationCodeServices(), clientDetailsService, requestFactory));
+        // 密碼模式
+        granters.add(new ResourceOwnerPasswordTokenGranter(authenticationManager, tokenServices, clientDetailsService, requestFactory));
+        // 刷新令牌模式
+        granters.add(new RefreshTokenGranter(tokenServices, clientDetailsService, requestFactory));
+        // 簡化模式
+        granters.add(new ImplicitTokenGranter(tokenServices, clientDetailsService, requestFactory));
+        // 客戶端模式
+        granters.add(new ClientCredentialsTokenGranter(tokenServices, clientDetailsService, requestFactory));
+        // 自訂模式
+        granters.add(new CustomTokenGranter(tokenServices, clientDetailsService, requestFactory, "custom", authenticationManager));
+
+        return new CompositeTokenGranter(granters);
     }
 
 }
