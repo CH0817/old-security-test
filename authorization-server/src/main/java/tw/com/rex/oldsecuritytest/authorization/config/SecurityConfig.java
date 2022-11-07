@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,12 +33,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(customAuthenticationProvider);
         // 必須自行增加 DaoAuthenticationProvider 才能使用授權碼模式、密碼模式
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setUserDetailsService(userDetailsServiceBean());
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
-        auth.authenticationProvider(daoAuthenticationProvider);
+        // 要自行增加 DefaultAuthenticationEventPublisher，否則 @EventListener 監聽 AuthenticationSuccessEvent 無法正常工作
+        auth.authenticationEventPublisher(authenticationEventPublisher())
+                .authenticationProvider(customAuthenticationProvider)
+                .authenticationProvider(daoAuthenticationProvider);
     }
 
     @Override
@@ -45,7 +48,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 .cors().disable()
                 // 必須主動開啟 formLogin 、 /oauth/** permitAll() 才能使用授權碼模式
-                .formLogin().and().authorizeRequests().antMatchers("/oauth/**").permitAll().and()
+                .formLogin().and()
+                .authorizeRequests().antMatchers("/oauth/**").permitAll().and()
                 .authorizeRequests().anyRequest().authenticated().and();
     }
 
@@ -71,6 +75,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
         return super.authenticationManager();
+    }
+
+    @Bean
+    public DefaultAuthenticationEventPublisher authenticationEventPublisher() {
+        return new DefaultAuthenticationEventPublisher();
     }
 
 }

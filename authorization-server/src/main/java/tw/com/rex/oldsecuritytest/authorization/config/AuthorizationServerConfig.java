@@ -2,7 +2,10 @@ package tw.com.rex.oldsecuritytest.authorization.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.builders.InMemoryClientDetailsServiceBuilder;
@@ -101,6 +104,18 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         granters.add(new CustomTokenGranter(tokenServices, clientDetailsService, requestFactory, "custom", authenticationManager));
 
         return new CompositeTokenGranter(granters);
+    }
+
+    @EventListener
+    public void authorizationSuccessListener(AuthenticationSuccessEvent event) {
+        // 監聽 authorization success event
+        System.out.println("authorization success");
+    }
+
+    @EventListener
+    public void authorizationFailureListener(AbstractAuthenticationFailureEvent event) {
+        // 監聽 authorization failure event
+        System.out.println("authorization failure");
     }
 
 }
