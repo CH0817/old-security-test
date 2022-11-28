@@ -1,7 +1,9 @@
 package tw.com.rex.oldsecuritytest.authorization.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
@@ -25,6 +27,7 @@ import org.springframework.security.oauth2.provider.implicit.ImplicitTokenGrante
 import org.springframework.security.oauth2.provider.password.ResourceOwnerPasswordTokenGranter;
 import org.springframework.security.oauth2.provider.refresh.RefreshTokenGranter;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import tw.com.rex.oldsecuritytest.authorization.security.CustomTokenGranter;
 
 import java.util.ArrayList;
@@ -73,6 +76,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .authenticationManager(authenticationManager)
                 // 不加這段無法刷新 token
                 .userDetailsService(userDetailsService)
+                // 不重複使用 refresh token
+                .reuseRefreshTokens(false)
                 .tokenGranter(tokenGranter(endpoints));
     }
 
@@ -105,6 +110,16 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
         return new CompositeTokenGranter(granters);
     }
+
+    // 處理 refresh token 第二次會出現錯誤的問題
+    // @Bean
+    // @Primary
+    // public DefaultTokenServices tokenServices() {
+    //     DefaultTokenServices services = new DefaultTokenServices();
+    //     services.setTokenStore(tokenStore());
+    //     services.setSupportRefreshToken(true);
+    //     return services;
+    // }
 
     @EventListener
     public void authorizationSuccessListener(AuthenticationSuccessEvent event) {
